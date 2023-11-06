@@ -236,9 +236,6 @@ class TestProductRoutes(TestCase):
 
     def test_delete_product_not_found(self):
         """It should give 404 error when deleting inexistent if"""
-        products = self._create_products(5)
-        product_count = self.get_product_count()
-        test_product = products[0]
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

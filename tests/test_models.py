@@ -218,11 +218,13 @@ class TestProductModel(unittest.TestCase):
 ###########################################################################
 
     def test_update_with_empty_id(self):
+        """It should give DataValidationError when updating with empty id"""
         product = Product(id=None, name="Test Product")
         with self.assertRaises(DataValidationError):
             product.update()
 
     def test_missing_attributes(self):
+        """It should give DataValidationError when attributes are missing"""
         product = Product()
         data = {
             "name": "Product Name",
@@ -233,6 +235,7 @@ class TestProductModel(unittest.TestCase):
             product.deserialize(data)
 
     def test_invalid_boolean_type(self):
+        """It should give DataValidationError when using invalid boolean"""
         product = Product()
         data = {
             "name": "Product Name",
@@ -245,6 +248,7 @@ class TestProductModel(unittest.TestCase):
             product.deserialize(data)
 
     def test_invalid_category(self):
+        """It should give DataValidationError when using invalid category"""
         product = Product()
         data = {
             "name": "Product Name",
@@ -257,12 +261,14 @@ class TestProductModel(unittest.TestCase):
             product.deserialize(data)
 
     def test_bad_request_body(self):
+        """It should give DataValidationError when using a bad request body"""
         product = Product()
         data = "This is not a dictionary"
         with self.assertRaises(DataValidationError):
             product.deserialize(data)
 
     def test_price_value_conversion(self):
+        """It should test line 220 of model.py but is not working"""
         price_str = ' "100.00" '  # Add any string with whitespace and quotes
         price_value = Decimal(price_str.strip(' "'))
         self.assertIsInstance(price_value, Decimal)
