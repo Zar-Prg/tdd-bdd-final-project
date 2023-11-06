@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -157,7 +157,7 @@ class TestProductModel(unittest.TestCase):
         """It should List all products"""
         products = Product.all()
         self.assertEqual(products, [])
-        for i in range(5):
+        for _ in range(5):
             product = ProductFactory()
             product.create()
         products = Product.all()
@@ -210,3 +210,60 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.price, name)
+
+###########################################################################
+#
+# Tests fro error handling functions
+#
+###########################################################################
+
+    def test_update_with_empty_id(self):
+        product = Product(id=None, name="Test Product")
+        with self.assertRaises(DataValidationError):
+            product.update()
+
+    def test_missing_attributes(self):
+        product = Product()
+        data = {
+            "name": "Product Name",
+            "description": "Product Description",
+            "price": "10.99"
+        }
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
+
+    def test_invalid_boolean_type(self):
+        product = Product()
+        data = {
+            "name": "Product Name",
+            "description": "Product Description",
+            "price": "10.99",
+            "available": "InvalidBoolType",
+            "category": "ELECTRONICS"
+        }
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
+
+    def test_invalid_category(self):
+        product = Product()
+        data = {
+            "name": "Product Name",
+            "description": "Product Description",
+            "price": "10.99",
+            "available": True,
+            "category": "INVALID_CATEGORY"
+        }
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
+
+    def test_bad_request_body(self):
+        product = Product()
+        data = "This is not a dictionary"
+        with self.assertRaises(DataValidationError):
+            product.deserialize(data)
+
+    def test_price_value_conversion(self):
+        price_str = ' "100.00" '  # Add any string with whitespace and quotes
+        price_value = Decimal(price_str.strip(' "'))
+        self.assertIsInstance(price_value, Decimal)
+        self.assertEqual(price_value, Decimal('100.00'))
